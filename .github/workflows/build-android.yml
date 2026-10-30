@@ -1,0 +1,38 @@
+name: Build Android (APK + AAB)
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Cordova globally
+        run: npm install -g cordova
+
+      - name: Create Cordova Project
+        run: |
+          cordova create my-app com.toroq.iraqna ToroqIraqna
+          cd my-app
+          cordova platform add android
+          rm -rf www/*
+          cp -r ../www/* www/
+          cordova build android --release
+
+      - name: Upload APK and AAB Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ToroqIraqna-Binaries
+          path: |
+            my-app/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
+            my-app/platforms/android/app/build/outputs/bundle/release/app-release.aab
